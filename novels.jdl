@@ -1,0 +1,52 @@
+application {
+  config {
+    baseName novels
+    packageName com.jhipster.novelapp
+    applicationType monolith
+    authenticationType jwt
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+    buildTool maven
+    clientFramework react
+    enableTranslation true
+    nativeLanguage en
+    languages [en]
+  }
+  entities *
+}
+
+entity Novel {
+  title String required
+}
+
+entity Genre {
+  name String required
+}
+
+entity Tag {
+  name String required
+}
+
+entity Author {
+  name String required
+}
+
+entity Chapter {
+  title String required,
+  content String required
+}
+
+relationship ManyToMany {
+  Novel{genre(name)} to Genre{novel},
+  Novel{tag(name)} to Tag{novel},
+  Novel{author(name)} to Author{novel}
+}
+
+relationship OneToMany {
+  Novel{chapter} to Chapter{novel(title)}
+}
+
+paginate Novel, Genre, Tag, Author, Chapter with pagination
+dto * with mapstruct
+service * with serviceClass

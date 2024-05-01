@@ -1,0 +1,29 @@
+{
+  "generator-jhipster": {
+    "applicationIndex": 0,
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "novels",
+    "blueprints": [
+      {
+        "name": "generator-jhipster-quarkus",
+        "version": "3.0.0"
+      }
+    ],
+    "buildTool": "maven",
+    "cacheProvider": "no",
+    "clientFramework": "react",
+    "databaseType": "sql",
+    "devDatabaseType": "postgresql",
+    "devServerPort": 9060,
+    "enableTranslation": true,
+    "entities": ["Novel", "Genre", "Tag", "Author", "Chapter"],
+    "jhipsterVersion": "8.1.0",
+    "languages": ["en"],
+    "lastLiquibaseTimestamp": 1714324070000,
+    "nativeLanguage": "en",
+    "packageFolder": "com/jhipster/novelapp",
+    "packageName": "com.jhipster.novelapp",
+    "prodDatabaseType": "postgresql"
+  }
+}

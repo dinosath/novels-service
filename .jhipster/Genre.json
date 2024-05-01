@@ -1,0 +1,27 @@
+{
+  "annotations": {
+    "changelogDate": "20240428170450"
+  },
+  "applications": ["novels"],
+  "dto": "mapstruct",
+  "entityTableName": "genre",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "name": "Genre",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "novel",
+      "otherEntityRelationshipName": "genre",
+      "relationshipName": "novel",
+      "relationshipSide": "right",
+      "relationshipType": "many-to-many"
+    }
+  ],
+  "service": "serviceClass"
+}

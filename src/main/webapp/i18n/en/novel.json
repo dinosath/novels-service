@@ -1,0 +1,28 @@
+{
+  "novelsApp": {
+    "novel": {
+      "home": {
+        "title": "Novels",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Novel",
+        "createOrEditLabel": "Create or edit a Novel",
+        "notFound": "No Novels found"
+      },
+      "created": "A new Novel is created with identifier {{ param }}",
+      "updated": "A Novel is updated with identifier {{ param }}",
+      "deleted": "A Novel is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Novel {{ id }}?"
+      },
+      "detail": {
+        "title": "Novel"
+      },
+      "id": "ID",
+      "title": "Title",
+      "chapter": "Chapter",
+      "genre": "Genre",
+      "tag": "Tag",
+      "author": "Author"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "annotations": {
+    "changelogDate": "20240428170350"
+  },
+  "applications": ["novels"],
+  "dto": "mapstruct",
+  "entityTableName": "novel",
+  "fields": [
+    {
+      "fieldName": "title",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "name": "Novel",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "chapter",
+      "otherEntityRelationshipName": "novel",
+      "relationshipName": "chapter",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-many"
+    },
+    {
+      "otherEntityField": "name",
+      "otherEntityName": "genre",
+      "otherEntityRelationshipName": "novel",
+      "relationshipName": "genre",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-many"
+    },
+    {
+      "otherEntityField": "name",
+      "otherEntityName": "tag",
+      "otherEntityRelationshipName": "novel",
+      "relationshipName": "tag",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-many"
+    },
+    {
+      "otherEntityField": "name",
+      "otherEntityName": "author",
+      "otherEntityRelationshipName": "novel",
+      "relationshipName": "author",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-many"
+    }
+  ],
+  "service": "serviceClass"
+}
