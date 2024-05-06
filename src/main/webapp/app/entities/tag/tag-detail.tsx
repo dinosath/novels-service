@@ -37,6 +37,19 @@ export const TagDetail = () => {
             </span>
           </dt>
           <dd>{tagEntity.name}</dd>
+          <dt>
+            <Translate contentKey="novelsApp.tag.novel">Novel</Translate>
+          </dt>
+          <dd>
+            {tagEntity.novels
+              ? tagEntity.novels.map((val, i) => (
+                  <span key={val.id}>
+                    <a>{val.id}</a>
+                    {tagEntity.novels && i === tagEntity.novels.length - 1 ? '' : ', '}
+                  </span>
+                ))
+              : null}
+          </dd>
         </dl>
         <Button tag={Link} to="/tag" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}

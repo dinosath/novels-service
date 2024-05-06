@@ -37,6 +37,19 @@ export const AuthorDetail = () => {
             </span>
           </dt>
           <dd>{authorEntity.name}</dd>
+          <dt>
+            <Translate contentKey="novelsApp.author.novel">Novel</Translate>
+          </dt>
+          <dd>
+            {authorEntity.novels
+              ? authorEntity.novels.map((val, i) => (
+                  <span key={val.id}>
+                    <a>{val.id}</a>
+                    {authorEntity.novels && i === authorEntity.novels.length - 1 ? '' : ', '}
+                  </span>
+                ))
+              : null}
+          </dd>
         </dl>
         <Button tag={Link} to="/author" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}

@@ -1,14 +1,32 @@
 package com.jhipster.novelapp.web.rest.errors;
 
-final class FieldErrorVM {
+import java.io.Serializable;
 
-    public final String objectName;
-    public final String field;
-    public final String message;
+public class FieldErrorVM implements Serializable {
 
-    public FieldErrorVM(String objectName, String message, String field) {
-        this.objectName = objectName;
+    private static final long serialVersionUID = 1L;
+
+    private final String objectName;
+
+    private final String field;
+
+    private final String message;
+
+    public FieldErrorVM(String dto, String field, String message) {
+        this.objectName = dto;
         this.field = field;
         this.message = message;
+    }
+
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

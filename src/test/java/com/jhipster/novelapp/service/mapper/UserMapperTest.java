@@ -3,6 +3,7 @@ package com.jhipster.novelapp.service.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.jhipster.novelapp.domain.User;
+import com.jhipster.novelapp.service.dto.AdminUserDTO;
 import com.jhipster.novelapp.service.dto.UserDTO;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,121 +16,117 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link UserMapper}.
  */
-public class UserMapperTest {
+class UserMapperTest {
 
     private static final String DEFAULT_LOGIN = "johndoe";
     private static final Long DEFAULT_ID = 1L;
 
     private UserMapper userMapper;
     private User user;
-    private UserDTO userDto;
+    private AdminUserDTO userDto;
 
     @BeforeEach
     public void init() {
         userMapper = new UserMapper();
         user = new User();
-        user.login = DEFAULT_LOGIN;
-        user.password = RandomStringUtils.random(60);
-        user.activated = true;
-        user.email = "johndoe@localhost";
-        user.firstName = "john";
-        user.lastName = "doe";
-        user.imageUrl = "image_url";
-        user.langKey = "en";
+        user.setLogin(DEFAULT_LOGIN);
+        user.setPassword(RandomStringUtils.randomAlphanumeric(60));
+        user.setActivated(true);
+        user.setEmail("johndoe@localhost");
+        user.setFirstName("john");
+        user.setLastName("doe");
+        user.setImageUrl("image_url");
+        user.setLangKey("en");
 
-        userDto = new UserDTO(user);
+        userDto = new AdminUserDTO(user);
     }
 
     @Test
-    public void usersToUserDTOsShouldMapOnlyNonNullUsers() {
+    void usersToUserDTOsShouldMapOnlyNonNullUsers() {
         List<User> users = new ArrayList<>();
         users.add(user);
         users.add(null);
 
         List<UserDTO> userDTOS = userMapper.usersToUserDTOs(users);
 
-        assertThat(userDTOS).isNotEmpty();
-        assertThat(userDTOS).size().isEqualTo(1);
+        assertThat(userDTOS).isNotEmpty().size().isEqualTo(1);
     }
 
     @Test
-    public void userDTOsToUsersShouldMapOnlyNonNullUsers() {
-        List<UserDTO> usersDto = new ArrayList<>();
+    void userDTOsToUsersShouldMapOnlyNonNullUsers() {
+        List<AdminUserDTO> usersDto = new ArrayList<>();
         usersDto.add(userDto);
         usersDto.add(null);
 
         List<User> users = userMapper.userDTOsToUsers(usersDto);
 
-        assertThat(users).isNotEmpty();
-        assertThat(users).size().isEqualTo(1);
+        assertThat(users).isNotEmpty().size().isEqualTo(1);
     }
 
     @Test
-    public void userDTOsToUsersWithAuthoritiesStringShouldMapToUsersWithAuthoritiesDomain() {
+    void userDTOsToUsersWithAuthoritiesStringShouldMapToUsersWithAuthoritiesDomain() {
         Set<String> authoritiesAsString = new HashSet<>();
         authoritiesAsString.add("ADMIN");
-        userDto.authorities = authoritiesAsString;
+        userDto.setAuthorities(authoritiesAsString);
 
-        List<UserDTO> usersDto = new ArrayList<>();
+        List<AdminUserDTO> usersDto = new ArrayList<>();
         usersDto.add(userDto);
 
         List<User> users = userMapper.userDTOsToUsers(usersDto);
 
-        assertThat(users).isNotEmpty();
-        assertThat(users).size().isEqualTo(1);
-        assertThat(users.get(0).authorities).isNotNull();
-        assertThat(users.get(0).authorities).isNotEmpty();
-        assertThat(users.get(0).authorities.iterator().next().name).isEqualTo("ADMIN");
+        assertThat(users).isNotEmpty().size().isEqualTo(1);
+        assertThat(users.get(0).getAuthorities()).isNotNull();
+        assertThat(users.get(0).getAuthorities()).isNotEmpty();
+        assertThat(users.get(0).getAuthorities().iterator().next().getName()).isEqualTo("ADMIN");
     }
 
     @Test
-    public void userDTOsToUsersMapWithNullAuthoritiesStringShouldReturnUserWithEmptyAuthorities() {
-        userDto.authorities = null;
+    void userDTOsToUsersMapWithNullAuthoritiesStringShouldReturnUserWithEmptyAuthorities() {
+        userDto.setAuthorities(null);
 
-        List<UserDTO> usersDto = new ArrayList<>();
+        List<AdminUserDTO> usersDto = new ArrayList<>();
         usersDto.add(userDto);
 
         List<User> users = userMapper.userDTOsToUsers(usersDto);
 
-        assertThat(users).isNotEmpty();
-        assertThat(users).size().isEqualTo(1);
-        assertThat(users.get(0).authorities).isNotNull();
-        assertThat(users.get(0).authorities).isEmpty();
+        assertThat(users).isNotEmpty().size().isEqualTo(1);
+        assertThat(users.get(0).getAuthorities()).isNotNull();
+        assertThat(users.get(0).getAuthorities()).isEmpty();
     }
 
     @Test
-    public void userDTOToUserMapWithAuthoritiesStringShouldReturnUserWithAuthorities() {
+    void userDTOToUserMapWithAuthoritiesStringShouldReturnUserWithAuthorities() {
         Set<String> authoritiesAsString = new HashSet<>();
         authoritiesAsString.add("ADMIN");
-        userDto.authorities = authoritiesAsString;
+        userDto.setAuthorities(authoritiesAsString);
 
         User user = userMapper.userDTOToUser(userDto);
 
         assertThat(user).isNotNull();
-        assertThat(user.authorities).isNotNull();
-        assertThat(user.authorities).isNotEmpty();
-        assertThat(user.authorities.iterator().next().name).isEqualTo("ADMIN");
+        assertThat(user.getAuthorities()).isNotNull();
+        assertThat(user.getAuthorities()).isNotEmpty();
+        assertThat(user.getAuthorities().iterator().next().getName()).isEqualTo("ADMIN");
     }
 
     @Test
-    public void userDTOToUserMapWithNullAuthoritiesStringShouldReturnUserWithEmptyAuthorities() {
-        userDto.authorities = null;
+    void userDTOToUserMapWithNullAuthoritiesStringShouldReturnUserWithEmptyAuthorities() {
+        userDto.setAuthorities(null);
 
         User user = userMapper.userDTOToUser(userDto);
 
         assertThat(user).isNotNull();
-        assertThat(user.authorities).isNotNull();
-        assertThat(user.authorities).isEmpty();
+        assertThat(user.getAuthorities()).isNotNull();
+        assertThat(user.getAuthorities()).isEmpty();
     }
 
     @Test
-    public void userDTOToUserMapWithNullUserShouldReturnNull() {
+    void userDTOToUserMapWithNullUserShouldReturnNull() {
         assertThat(userMapper.userDTOToUser(null)).isNull();
     }
 
     @Test
-    public void testUserFromId() {
-        assertThat(userMapper.userFromId(DEFAULT_ID).id).isEqualTo(DEFAULT_ID);
+    void testUserFromId() {
+        assertThat(userMapper.userFromId(DEFAULT_ID).getId()).isEqualTo(DEFAULT_ID);
         assertThat(userMapper.userFromId(null)).isNull();
     }
 }

@@ -1,46 +1,100 @@
 package com.jhipster.novelapp.service;
 
 import com.jhipster.novelapp.domain.Novel;
+import com.jhipster.novelapp.repository.NovelRepository;
 import com.jhipster.novelapp.service.dto.NovelDTO;
 import com.jhipster.novelapp.service.mapper.NovelMapper;
-import io.quarkus.panache.common.Page;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@ApplicationScoped
+/**
+ * Service Implementation for managing {@link com.jhipster.novelapp.domain.Novel}.
+ */
+@Service
 @Transactional
 public class NovelService {
 
     private final Logger log = LoggerFactory.getLogger(NovelService.class);
 
-    @Inject
-    NovelMapper novelMapper;
+    private final NovelRepository novelRepository;
 
-    @Transactional
-    public NovelDTO persistOrUpdate(NovelDTO novelDTO) {
+    private final NovelMapper novelMapper;
+
+    public NovelService(NovelRepository novelRepository, NovelMapper novelMapper) {
+        this.novelRepository = novelRepository;
+        this.novelMapper = novelMapper;
+    }
+
+    /**
+     * Save a novel.
+     *
+     * @param novelDTO the entity to save.
+     * @return the persisted entity.
+     */
+    public NovelDTO save(NovelDTO novelDTO) {
         log.debug("Request to save Novel : {}", novelDTO);
-        var novel = novelMapper.toEntity(novelDTO);
-        novel = Novel.persistOrUpdate(novel);
+        Novel novel = novelMapper.toEntity(novelDTO);
+        novel = novelRepository.save(novel);
         return novelMapper.toDto(novel);
     }
 
     /**
-     * Delete the Novel by id.
+     * Update a novel.
      *
-     * @param id the id of the entity.
+     * @param novelDTO the entity to save.
+     * @return the persisted entity.
      */
-    @Transactional
-    public void delete(Long id) {
-        log.debug("Request to delete Novel : {}", id);
-        Novel
-            .findByIdOptional(id)
-            .ifPresent(novel -> {
-                novel.delete();
-            });
+    public NovelDTO update(NovelDTO novelDTO) {
+        log.debug("Request to update Novel : {}", novelDTO);
+        Novel novel = novelMapper.toEntity(novelDTO);
+        novel = novelRepository.save(novel);
+        return novelMapper.toDto(novel);
+    }
+
+    /**
+     * Partially update a novel.
+     *
+     * @param novelDTO the entity to update partially.
+     * @return the persisted entity.
+     */
+    public Optional<NovelDTO> partialUpdate(NovelDTO novelDTO) {
+        log.debug("Request to partially update Novel : {}", novelDTO);
+
+        return novelRepository
+            .findById(novelDTO.getId())
+            .map(existingNovel -> {
+                novelMapper.partialUpdate(existingNovel, novelDTO);
+
+                return existingNovel;
+            })
+            .map(novelRepository::save)
+            .map(novelMapper::toDto);
+    }
+
+    /**
+     * Get all the novels.
+     *
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<NovelDTO> findAll(Pageable pageable) {
+        log.debug("Request to get all Novels");
+        return novelRepository.findAll(pageable).map(novelMapper::toDto);
+    }
+
+    /**
+     * Get all the novels with eager load of many-to-many relationships.
+     *
+     * @return the list of entities.
+     */
+    public Page<NovelDTO> findAllWithEagerRelationships(Pageable pageable) {
+        return novelRepository.findAllWithEagerRelationships(pageable).map(novelMapper::toDto);
     }
 
     /**
@@ -49,30 +103,19 @@ public class NovelService {
      * @param id the id of the entity.
      * @return the entity.
      */
+    @Transactional(readOnly = true)
     public Optional<NovelDTO> findOne(Long id) {
         log.debug("Request to get Novel : {}", id);
-        return Novel.findOneWithEagerRelationships(id).map(novel -> novelMapper.toDto((Novel) novel));
+        return novelRepository.findOneWithEagerRelationships(id).map(novelMapper::toDto);
     }
 
     /**
-     * Get all the novels.
-     * @param page the pagination information.
-     * @return the list of entities.
+     * Delete the novel by id.
+     *
+     * @param id the id of the entity.
      */
-    public Paged<NovelDTO> findAll(Page page) {
-        log.debug("Request to get all Novels");
-        return new Paged<>(Novel.findAll().page(page)).map(novel -> novelMapper.toDto((Novel) novel));
-    }
-
-    /**
-     * Get all the novels with eager load of many-to-many relationships.
-     * @param page the pagination information.
-     * @return the list of entities.
-     */
-    public Paged<NovelDTO> findAllWithEagerRelationships(Page page) {
-        var novels = Novel.findAllWithEagerRelationships().page(page).list();
-        var totalCount = Novel.findAll().count();
-        var pageCount = Novel.findAll().page(page).pageCount();
-        return new Paged<>(page.index, page.size, totalCount, pageCount, novels).map(novel -> novelMapper.toDto((Novel) novel));
+    public void delete(Long id) {
+        log.debug("Request to delete Novel : {}", id);
+        novelRepository.deleteById(id);
     }
 }

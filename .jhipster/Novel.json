@@ -1,10 +1,9 @@
 {
   "annotations": {
-    "changelogDate": "20240428170350"
+    "changelogDate": "20240505191719"
   },
   "applications": ["novels"],
   "dto": "mapstruct",
-  "entityTableName": "novel",
   "fields": [
     {
       "fieldName": "title",
@@ -47,5 +46,6 @@
       "relationshipType": "many-to-many"
     }
   ],
+  "searchEngine": "no",
   "service": "serviceClass"
 }

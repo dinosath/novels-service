@@ -1,14 +1,10 @@
 package com.jhipster.novelapp.domain;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.json.bind.annotation.JsonbTransient;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -18,56 +14,178 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  */
 @Entity
 @Table(name = "novel")
-@Cacheable
-@RegisterForReflection
-public class Novel extends PanacheEntityBase implements Serializable {
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@SuppressWarnings("common-java:DuplicatedBlocks")
+public class Novel implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
-    public Long id;
+    @Column(name = "id")
+    private Long id;
 
     @NotNull
     @Column(name = "title", nullable = false)
-    public String title;
+    private String title;
 
-    @OneToMany(mappedBy = "novel")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "novel")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    public Set<Chapter> chapters = new HashSet<>();
+    @JsonIgnoreProperties(value = { "novel" }, allowSetters = true)
+    private Set<Chapter> chapters = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "rel_novel__genre", joinColumns = @JoinColumn(name = "novel_id"), inverseJoinColumns = @JoinColumn(name = "genre_id"))
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JoinTable(
-        name = "rel_novel__genre",
-        joinColumns = @JoinColumn(name = "novel_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "genre_id", referencedColumnName = "id")
-    )
-    @JsonbTransient
-    public Set<Genre> genres = new HashSet<>();
+    @JsonIgnoreProperties(value = { "novels" }, allowSetters = true)
+    private Set<Genre> genres = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "rel_novel__tag", joinColumns = @JoinColumn(name = "novel_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JoinTable(
-        name = "rel_novel__tag",
-        joinColumns = @JoinColumn(name = "novel_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id")
-    )
-    @JsonbTransient
-    public Set<Tag> tags = new HashSet<>();
+    @JsonIgnoreProperties(value = { "novels" }, allowSetters = true)
+    private Set<Tag> tags = new HashSet<>();
 
-    @ManyToMany
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "rel_novel__author",
-        joinColumns = @JoinColumn(name = "novel_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "author_id", referencedColumnName = "id")
+        joinColumns = @JoinColumn(name = "novel_id"),
+        inverseJoinColumns = @JoinColumn(name = "author_id")
     )
-    @JsonbTransient
-    public Set<Author> authors = new HashSet<>();
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(value = { "novels" }, allowSetters = true)
+    private Set<Author> authors = new HashSet<>();
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Novel id(Long id) {
+        this.setId(id);
+        return this;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public Novel title(String title) {
+        this.setTitle(title);
+        return this;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Set<Chapter> getChapters() {
+        return this.chapters;
+    }
+
+    public void setChapters(Set<Chapter> chapters) {
+        if (this.chapters != null) {
+            this.chapters.forEach(i -> i.setNovel(null));
+        }
+        if (chapters != null) {
+            chapters.forEach(i -> i.setNovel(this));
+        }
+        this.chapters = chapters;
+    }
+
+    public Novel chapters(Set<Chapter> chapters) {
+        this.setChapters(chapters);
+        return this;
+    }
+
+    public Novel addChapter(Chapter chapter) {
+        this.chapters.add(chapter);
+        chapter.setNovel(this);
+        return this;
+    }
+
+    public Novel removeChapter(Chapter chapter) {
+        this.chapters.remove(chapter);
+        chapter.setNovel(null);
+        return this;
+    }
+
+    public Set<Genre> getGenres() {
+        return this.genres;
+    }
+
+    public void setGenres(Set<Genre> genres) {
+        this.genres = genres;
+    }
+
+    public Novel genres(Set<Genre> genres) {
+        this.setGenres(genres);
+        return this;
+    }
+
+    public Novel addGenre(Genre genre) {
+        this.genres.add(genre);
+        return this;
+    }
+
+    public Novel removeGenre(Genre genre) {
+        this.genres.remove(genre);
+        return this;
+    }
+
+    public Set<Tag> getTags() {
+        return this.tags;
+    }
+
+    public void setTags(Set<Tag> tags) {
+        this.tags = tags;
+    }
+
+    public Novel tags(Set<Tag> tags) {
+        this.setTags(tags);
+        return this;
+    }
+
+    public Novel addTag(Tag tag) {
+        this.tags.add(tag);
+        return this;
+    }
+
+    public Novel removeTag(Tag tag) {
+        this.tags.remove(tag);
+        return this;
+    }
+
+    public Set<Author> getAuthors() {
+        return this.authors;
+    }
+
+    public void setAuthors(Set<Author> authors) {
+        this.authors = authors;
+    }
+
+    public Novel authors(Set<Author> authors) {
+        this.setAuthors(authors);
+        return this;
+    }
+
+    public Novel addAuthor(Author author) {
+        this.authors.add(author);
+        return this;
+    }
+
+    public Novel removeAuthor(Author author) {
+        this.authors.remove(author);
+        return this;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {
@@ -77,65 +195,21 @@ public class Novel extends PanacheEntityBase implements Serializable {
         if (!(o instanceof Novel)) {
             return false;
         }
-        return id != null && id.equals(((Novel) o).id);
+        return getId() != null && getId().equals(((Novel) o).getId());
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
-        return "Novel{" + "id=" + id + ", title='" + title + "'" + "}";
-    }
-
-    public Novel update() {
-        return update(this);
-    }
-
-    public Novel persistOrUpdate() {
-        return persistOrUpdate(this);
-    }
-
-    public static Novel update(Novel novel) {
-        if (novel == null) {
-            throw new IllegalArgumentException("novel can't be null");
-        }
-        var entity = Novel.<Novel>findById(novel.id);
-        if (entity != null) {
-            entity.title = novel.title;
-            entity.chapters = novel.chapters;
-            entity.genres = novel.genres;
-            entity.tags = novel.tags;
-            entity.authors = novel.authors;
-        }
-        return entity;
-    }
-
-    public static Novel persistOrUpdate(Novel novel) {
-        if (novel == null) {
-            throw new IllegalArgumentException("novel can't be null");
-        }
-        if (novel.id == null) {
-            persist(novel);
-            return novel;
-        } else {
-            return update(novel);
-        }
-    }
-
-    public static PanacheQuery<Novel> findAllWithEagerRelationships() {
-        return find(
-            "select distinct novel from Novel novel left join fetch novel.genres left join fetch novel.tags left join fetch novel.authors"
-        );
-    }
-
-    public static Optional<Novel> findOneWithEagerRelationships(Long id) {
-        return find(
-            "select novel from Novel novel left join fetch novel.genres left join fetch novel.tags left join fetch novel.authors where novel.id =?1",
-            id
-        )
-            .firstResultOptional();
+        return "Novel{" +
+            "id=" + getId() +
+            ", title='" + getTitle() + "'" +
+            "}";
     }
 }

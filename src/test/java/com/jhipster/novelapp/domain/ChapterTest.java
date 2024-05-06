@@ -1,23 +1,37 @@
 package com.jhipster.novelapp.domain;
 
+import static com.jhipster.novelapp.domain.ChapterTestSamples.*;
+import static com.jhipster.novelapp.domain.NovelTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jhipster.novelapp.TestUtil;
+import com.jhipster.novelapp.web.rest.TestUtil;
 import org.junit.jupiter.api.Test;
 
-public class ChapterTest {
+class ChapterTest {
 
     @Test
-    public void equalsVerifier() throws Exception {
+    void equalsVerifier() throws Exception {
         TestUtil.equalsVerifier(Chapter.class);
-        Chapter chapter1 = new Chapter();
-        chapter1.id = 1L;
+        Chapter chapter1 = getChapterSample1();
         Chapter chapter2 = new Chapter();
-        chapter2.id = chapter1.id;
+        assertThat(chapter1).isNotEqualTo(chapter2);
+
+        chapter2.setId(chapter1.getId());
         assertThat(chapter1).isEqualTo(chapter2);
-        chapter2.id = 2L;
+
+        chapter2 = getChapterSample2();
         assertThat(chapter1).isNotEqualTo(chapter2);
-        chapter1.id = null;
-        assertThat(chapter1).isNotEqualTo(chapter2);
+    }
+
+    @Test
+    void novelTest() throws Exception {
+        Chapter chapter = getChapterRandomSampleGenerator();
+        Novel novelBack = getNovelRandomSampleGenerator();
+
+        chapter.setNovel(novelBack);
+        assertThat(chapter.getNovel()).isEqualTo(novelBack);
+
+        chapter.novel(null);
+        assertThat(chapter.getNovel()).isNull();
     }
 }

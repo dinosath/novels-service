@@ -1,12 +1,11 @@
 package com.jhipster.novelapp.web.rest.errors;
 
-import java.net.URI;
-
+@SuppressWarnings("java:S110") // Inheritance tree of classes should not be too deep
 public class LoginAlreadyUsedException extends BadRequestAlertException {
 
-    public static final URI TYPE = URI.create(ErrorConstants.PROBLEM_BASE_URL + "/login-already-used");
+    private static final long serialVersionUID = 1L;
 
     public LoginAlreadyUsedException() {
-        super(TYPE, "Login name already used!", "userManagement", "userexists");
+        super(ErrorConstants.LOGIN_ALREADY_USED_TYPE, "Login name already used!", "userManagement", "userexists");
     }
 }

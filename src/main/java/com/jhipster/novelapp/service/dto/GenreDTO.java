@@ -1,19 +1,47 @@
 package com.jhipster.novelapp.service.dto;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * A DTO for the {@link com.jhipster.novelapp.domain.Genre} entity.
  */
-@RegisterForReflection
+@SuppressWarnings("common-java:DuplicatedBlocks")
 public class GenreDTO implements Serializable {
 
-    public Long id;
+    private Long id;
 
     @NotNull
-    public String name;
+    private String name;
+
+    private Set<NovelDTO> novels = new HashSet<>();
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<NovelDTO> getNovels() {
+        return novels;
+    }
+
+    public void setNovels(Set<NovelDTO> novels) {
+        this.novels = novels;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -24,16 +52,25 @@ public class GenreDTO implements Serializable {
             return false;
         }
 
-        return id != null && id.equals(((GenreDTO) o).id);
+        GenreDTO genreDTO = (GenreDTO) o;
+        if (this.id == null) {
+            return false;
+        }
+        return Objects.equals(this.id, genreDTO.id);
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        return Objects.hash(this.id);
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
-        return "GenreDTO{" + ", id=" + id + ", name='" + name + "'" + "}";
+        return "GenreDTO{" +
+            "id=" + getId() +
+            ", name='" + getName() + "'" +
+            ", novels=" + getNovels() +
+            "}";
     }
 }

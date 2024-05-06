@@ -1,10 +1,9 @@
 {
   "annotations": {
-    "changelogDate": "20240428170750"
+    "changelogDate": "20240505192119"
   },
   "applications": ["novels"],
   "dto": "mapstruct",
-  "entityTableName": "chapter",
   "fields": [
     {
       "fieldName": "title",
@@ -13,8 +12,7 @@
     },
     {
       "fieldName": "content",
-      "fieldType": "byte[]",
-      "fieldTypeBlobContent": "text",
+      "fieldType": "String",
       "fieldValidateRules": ["required"]
     }
   ],
@@ -30,5 +28,6 @@
       "relationshipType": "many-to-one"
     }
   ],
+  "searchEngine": "no",
   "service": "serviceClass"
 }

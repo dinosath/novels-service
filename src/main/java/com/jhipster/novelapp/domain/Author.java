@@ -1,14 +1,10 @@
 package com.jhipster.novelapp.domain;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.json.bind.annotation.JsonbTransient;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -18,27 +14,87 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  */
 @Entity
 @Table(name = "author")
-@Cacheable
-@RegisterForReflection
-public class Author extends PanacheEntityBase implements Serializable {
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@SuppressWarnings("common-java:DuplicatedBlocks")
+public class Author implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
-    public Long id;
+    @Column(name = "id")
+    private Long id;
 
     @NotNull
     @Column(name = "name", nullable = false)
-    public String name;
+    private String name;
 
-    @ManyToMany(mappedBy = "authors")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "authors")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonbTransient
-    public Set<Novel> novels = new HashSet<>();
+    @JsonIgnoreProperties(value = { "chapters", "genres", "tags", "authors" }, allowSetters = true)
+    private Set<Novel> novels = new HashSet<>();
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Author id(Long id) {
+        this.setId(id);
+        return this;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Author name(String name) {
+        this.setName(name);
+        return this;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<Novel> getNovels() {
+        return this.novels;
+    }
+
+    public void setNovels(Set<Novel> novels) {
+        if (this.novels != null) {
+            this.novels.forEach(i -> i.removeAuthor(this));
+        }
+        if (novels != null) {
+            novels.forEach(i -> i.addAuthor(this));
+        }
+        this.novels = novels;
+    }
+
+    public Author novels(Set<Novel> novels) {
+        this.setNovels(novels);
+        return this;
+    }
+
+    public Author addNovel(Novel novel) {
+        this.novels.add(novel);
+        novel.getAuthors().add(this);
+        return this;
+    }
+
+    public Author removeNovel(Novel novel) {
+        this.novels.remove(novel);
+        novel.getAuthors().remove(this);
+        return this;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {
@@ -48,56 +104,21 @@ public class Author extends PanacheEntityBase implements Serializable {
         if (!(o instanceof Author)) {
             return false;
         }
-        return id != null && id.equals(((Author) o).id);
+        return getId() != null && getId().equals(((Author) o).getId());
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
-        return "Author{" + "id=" + id + ", name='" + name + "'" + "}";
-    }
-
-    public Author update() {
-        return update(this);
-    }
-
-    public Author persistOrUpdate() {
-        return persistOrUpdate(this);
-    }
-
-    public static Author update(Author author) {
-        if (author == null) {
-            throw new IllegalArgumentException("author can't be null");
-        }
-        var entity = Author.<Author>findById(author.id);
-        if (entity != null) {
-            entity.name = author.name;
-            entity.novels = author.novels;
-        }
-        return entity;
-    }
-
-    public static Author persistOrUpdate(Author author) {
-        if (author == null) {
-            throw new IllegalArgumentException("author can't be null");
-        }
-        if (author.id == null) {
-            persist(author);
-            return author;
-        } else {
-            return update(author);
-        }
-    }
-
-    public static PanacheQuery<Author> findAllWithEagerRelationships() {
-        return find("select distinct author from Author author");
-    }
-
-    public static Optional<Author> findOneWithEagerRelationships(Long id) {
-        return find("select author from Author author where author.id =?1", id).firstResultOptional();
+        return "Author{" +
+            "id=" + getId() +
+            ", name='" + getName() + "'" +
+            "}";
     }
 }

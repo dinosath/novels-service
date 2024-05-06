@@ -1,46 +1,100 @@
 package com.jhipster.novelapp.service;
 
 import com.jhipster.novelapp.domain.Chapter;
+import com.jhipster.novelapp.repository.ChapterRepository;
 import com.jhipster.novelapp.service.dto.ChapterDTO;
 import com.jhipster.novelapp.service.mapper.ChapterMapper;
-import io.quarkus.panache.common.Page;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@ApplicationScoped
+/**
+ * Service Implementation for managing {@link com.jhipster.novelapp.domain.Chapter}.
+ */
+@Service
 @Transactional
 public class ChapterService {
 
     private final Logger log = LoggerFactory.getLogger(ChapterService.class);
 
-    @Inject
-    ChapterMapper chapterMapper;
+    private final ChapterRepository chapterRepository;
 
-    @Transactional
-    public ChapterDTO persistOrUpdate(ChapterDTO chapterDTO) {
+    private final ChapterMapper chapterMapper;
+
+    public ChapterService(ChapterRepository chapterRepository, ChapterMapper chapterMapper) {
+        this.chapterRepository = chapterRepository;
+        this.chapterMapper = chapterMapper;
+    }
+
+    /**
+     * Save a chapter.
+     *
+     * @param chapterDTO the entity to save.
+     * @return the persisted entity.
+     */
+    public ChapterDTO save(ChapterDTO chapterDTO) {
         log.debug("Request to save Chapter : {}", chapterDTO);
-        var chapter = chapterMapper.toEntity(chapterDTO);
-        chapter = Chapter.persistOrUpdate(chapter);
+        Chapter chapter = chapterMapper.toEntity(chapterDTO);
+        chapter = chapterRepository.save(chapter);
         return chapterMapper.toDto(chapter);
     }
 
     /**
-     * Delete the Chapter by id.
+     * Update a chapter.
      *
-     * @param id the id of the entity.
+     * @param chapterDTO the entity to save.
+     * @return the persisted entity.
      */
-    @Transactional
-    public void delete(Long id) {
-        log.debug("Request to delete Chapter : {}", id);
-        Chapter
-            .findByIdOptional(id)
-            .ifPresent(chapter -> {
-                chapter.delete();
-            });
+    public ChapterDTO update(ChapterDTO chapterDTO) {
+        log.debug("Request to update Chapter : {}", chapterDTO);
+        Chapter chapter = chapterMapper.toEntity(chapterDTO);
+        chapter = chapterRepository.save(chapter);
+        return chapterMapper.toDto(chapter);
+    }
+
+    /**
+     * Partially update a chapter.
+     *
+     * @param chapterDTO the entity to update partially.
+     * @return the persisted entity.
+     */
+    public Optional<ChapterDTO> partialUpdate(ChapterDTO chapterDTO) {
+        log.debug("Request to partially update Chapter : {}", chapterDTO);
+
+        return chapterRepository
+            .findById(chapterDTO.getId())
+            .map(existingChapter -> {
+                chapterMapper.partialUpdate(existingChapter, chapterDTO);
+
+                return existingChapter;
+            })
+            .map(chapterRepository::save)
+            .map(chapterMapper::toDto);
+    }
+
+    /**
+     * Get all the chapters.
+     *
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<ChapterDTO> findAll(Pageable pageable) {
+        log.debug("Request to get all Chapters");
+        return chapterRepository.findAll(pageable).map(chapterMapper::toDto);
+    }
+
+    /**
+     * Get all the chapters with eager load of many-to-many relationships.
+     *
+     * @return the list of entities.
+     */
+    public Page<ChapterDTO> findAllWithEagerRelationships(Pageable pageable) {
+        return chapterRepository.findAllWithEagerRelationships(pageable).map(chapterMapper::toDto);
     }
 
     /**
@@ -49,18 +103,19 @@ public class ChapterService {
      * @param id the id of the entity.
      * @return the entity.
      */
+    @Transactional(readOnly = true)
     public Optional<ChapterDTO> findOne(Long id) {
         log.debug("Request to get Chapter : {}", id);
-        return Chapter.findByIdOptional(id).map(chapter -> chapterMapper.toDto((Chapter) chapter));
+        return chapterRepository.findOneWithEagerRelationships(id).map(chapterMapper::toDto);
     }
 
     /**
-     * Get all the chapters.
-     * @param page the pagination information.
-     * @return the list of entities.
+     * Delete the chapter by id.
+     *
+     * @param id the id of the entity.
      */
-    public Paged<ChapterDTO> findAll(Page page) {
-        log.debug("Request to get all Chapters");
-        return new Paged<>(Chapter.findAll().page(page)).map(chapter -> chapterMapper.toDto((Chapter) chapter));
+    public void delete(Long id) {
+        log.debug("Request to delete Chapter : {}", id);
+        chapterRepository.deleteById(id);
     }
 }

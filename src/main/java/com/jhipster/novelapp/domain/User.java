@@ -1,9 +1,7 @@
 package com.jhipster.novelapp.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jhipster.novelapp.config.Constants;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.quarkus.panache.common.Page;
-import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -12,9 +10,9 @@ import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.Locale;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -24,97 +22,181 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  */
 @Entity
 @Table(name = "jhi_user")
-@Cacheable
-public class User extends PanacheEntityBase implements Serializable {
+@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
+public class User extends AbstractAuditingEntity<Long> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
-    public Long id;
+    private Long id;
 
     @NotNull
     @Pattern(regexp = Constants.LOGIN_REGEX)
     @Size(min = 1, max = 50)
     @Column(length = 50, unique = true, nullable = false)
-    public String login;
+    private String login;
 
+    @JsonIgnore
     @NotNull
     @Size(min = 60, max = 60)
     @Column(name = "password_hash", length = 60, nullable = false)
-    @JsonbTransient
-    public String password;
+    private String password;
 
     @Size(max = 50)
     @Column(name = "first_name", length = 50)
-    public String firstName;
+    private String firstName;
 
     @Size(max = 50)
     @Column(name = "last_name", length = 50)
-    public String lastName;
+    private String lastName;
 
     @Email
     @Size(min = 5, max = 254)
     @Column(length = 254, unique = true)
-    public String email;
+    private String email;
 
     @NotNull
     @Column(nullable = false)
-    public boolean activated = false;
+    private boolean activated = false;
 
     @Size(min = 2, max = 10)
     @Column(name = "lang_key", length = 10)
-    public String langKey;
+    private String langKey;
 
     @Size(max = 256)
     @Column(name = "image_url", length = 256)
-    public String imageUrl;
+    private String imageUrl;
 
     @Size(max = 20)
     @Column(name = "activation_key", length = 20)
-    @JsonbTransient
-    public String activationKey;
+    @JsonIgnore
+    private String activationKey;
 
     @Size(max = 20)
     @Column(name = "reset_key", length = 20)
-    @JsonbTransient
-    public String resetKey;
+    @JsonIgnore
+    private String resetKey;
 
     @Column(name = "reset_date")
-    public Instant resetDate = null;
+    private Instant resetDate = null;
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
         name = "jhi_user_authority",
         joinColumns = { @JoinColumn(name = "user_id", referencedColumnName = "id") },
         inverseJoinColumns = { @JoinColumn(name = "authority_name", referencedColumnName = "name") }
     )
-    @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
     @BatchSize(size = 20)
-    @JsonbTransient
-    public Set<Authority> authorities = new HashSet<>();
+    private Set<Authority> authorities = new HashSet<>();
 
-    //To move to an audit mechanism
-    //    @CreatedBy
-    @Column(name = "created_by", nullable = false, length = 50, updatable = false)
-    @JsonbTransient
-    public String createdBy = "";
+    public Long getId() {
+        return id;
+    }
 
-    //    @CreatedDate
-    @Column(name = "created_date", updatable = false)
-    @JsonbTransient
-    public Instant createdDate = Instant.now();
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    //    @LastModifiedBy
-    @Column(name = "last_modified_by", length = 50)
-    @JsonbTransient
-    public String lastModifiedBy = "";
+    public String getLogin() {
+        return login;
+    }
 
-    //    @LastModifiedDate
-    @Column(name = "last_modified_date")
-    @JsonbTransient
-    public Instant lastModifiedDate = Instant.now();
+    // Lowercase the login before saving it in database
+    public void setLogin(String login) {
+        this.login = StringUtils.lowerCase(login, Locale.ENGLISH);
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public boolean isActivated() {
+        return activated;
+    }
+
+    public void setActivated(boolean activated) {
+        this.activated = activated;
+    }
+
+    public String getActivationKey() {
+        return activationKey;
+    }
+
+    public void setActivationKey(String activationKey) {
+        this.activationKey = activationKey;
+    }
+
+    public String getResetKey() {
+        return resetKey;
+    }
+
+    public void setResetKey(String resetKey) {
+        this.resetKey = resetKey;
+    }
+
+    public Instant getResetDate() {
+        return resetDate;
+    }
+
+    public void setResetDate(Instant resetDate) {
+        this.resetDate = resetDate;
+    }
+
+    public String getLangKey() {
+        return langKey;
+    }
+
+    public void setLangKey(String langKey) {
+        this.langKey = langKey;
+    }
+
+    public Set<Authority> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Set<Authority> authorities) {
+        this.authorities = authorities;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -129,74 +211,22 @@ public class User extends PanacheEntityBase implements Serializable {
 
     @Override
     public int hashCode() {
-        return 31;
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
-        return (
-            "User{" +
-            "login='" +
-            login +
-            '\'' +
-            ", firstName='" +
-            firstName +
-            '\'' +
-            ", lastName='" +
-            lastName +
-            '\'' +
-            ", email='" +
-            email +
-            '\'' +
-            ", imageUrl='" +
-            imageUrl +
-            '\'' +
-            ", activated='" +
-            activated +
-            '\'' +
-            ", langKey='" +
-            langKey +
-            '\'' +
-            ", activationKey='" +
-            activationKey +
-            '\'' +
-            "}"
-        );
-    }
-
-    public static Optional<User> findOneByActivationKey(String activationKey) {
-        return find("activationKey", activationKey).firstResultOptional();
-    }
-
-    public static List<User> findAllByActivatedIsFalseAndActivationKeyIsNotNullAndCreatedDateBefore(Instant dateTime) {
-        return list("activated = false and activationKey not null and createdDate <= ?1", dateTime);
-    }
-
-    public static Optional<User> findOneByResetKey(String resetKey) {
-        return find("resetKey", resetKey).firstResultOptional();
-    }
-
-    public static Optional<User> findOneByEmailIgnoreCase(String email) {
-        return find("LOWER(email) = LOWER(?1)", email).firstResultOptional();
-    }
-
-    public static Optional<User> findOneByLogin(String login) {
-        return find("login", login).firstResultOptional();
-    }
-
-    public static Optional<User> findOneWithAuthoritiesById(Long id) {
-        return find("FROM User u LEFT JOIN FETCH u.authorities WHERE u.id = ?1", id).firstResultOptional();
-    }
-
-    public static Optional<User> findOneWithAuthoritiesByLogin(String login) {
-        return find("FROM User u LEFT JOIN FETCH u.authorities WHERE u.login = ?1", login).firstResultOptional();
-    }
-
-    public static Optional<User> findOneWithAuthoritiesByEmailIgnoreCase(String email) {
-        return find("FROM User u LEFT JOIN FETCH u.authorities WHERE LOWER(u.login) = LOWER(?1)", email).firstResultOptional();
-    }
-
-    public static List<User> findAllByLoginNot(Page page, String login) {
-        return find("login != ?1", login).page(page).list();
+        return "User{" +
+            "login='" + login + '\'' +
+            ", firstName='" + firstName + '\'' +
+            ", lastName='" + lastName + '\'' +
+            ", email='" + email + '\'' +
+            ", imageUrl='" + imageUrl + '\'' +
+            ", activated='" + activated + '\'' +
+            ", langKey='" + langKey + '\'' +
+            ", activationKey='" + activationKey + '\'' +
+            "}";
     }
 }

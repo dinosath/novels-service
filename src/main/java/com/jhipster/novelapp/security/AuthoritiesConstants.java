@@ -1,7 +1,7 @@
 package com.jhipster.novelapp.security;
 
 /**
- * Constants JHipster authorities.
+ * Constants for Spring Security authorities.
  */
 public final class AuthoritiesConstants {
 

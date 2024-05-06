@@ -56,6 +56,7 @@ export const AuthorUpdate = () => {
     const entity = {
       ...authorEntity,
       ...values,
+      novels: mapIdList(values.novels),
     };
 
     if (isNew) {
@@ -70,6 +71,7 @@ export const AuthorUpdate = () => {
       ? {}
       : {
           ...authorEntity,
+          novels: authorEntity?.novels?.map(e => e.id.toString()),
         };
 
   return (
@@ -107,6 +109,23 @@ export const AuthorUpdate = () => {
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
+              <ValidatedField
+                label={translate('novelsApp.author.novel')}
+                id="author-novel"
+                data-cy="novel"
+                type="select"
+                multiple
+                name="novels"
+              >
+                <option value="" key="0" />
+                {novels
+                  ? novels.map(otherEntity => (
+                      <option value={otherEntity.id} key={otherEntity.id}>
+                        {otherEntity.id}
+                      </option>
+                    ))
+                  : null}
+              </ValidatedField>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/author" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

@@ -1,19 +1,27 @@
 package com.jhipster.novelapp.web.rest.vm;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * View Model object for storing the user's key and password.
  */
-@RegisterForReflection
 public class KeyAndPasswordVM {
 
-    public String key;
+    private String key;
 
-    public String newPassword;
+    private String newPassword;
 
-    @Override
-    public String toString() {
-        return "KeyAndPasswordVM{" + "key='" + key + '\'' + ", newPassword='" + newPassword + '\'' + '}';
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getNewPassword() {
+        return newPassword;
+    }
+
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
     }
 }

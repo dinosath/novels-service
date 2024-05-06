@@ -56,7 +56,7 @@ export const ChapterUpdate = () => {
     const entity = {
       ...chapterEntity,
       ...values,
-      novel: novels.find(it => it.id.toString() === values.novel.toString()),
+      novel: novels.find(it => it.id.toString() === values.novel?.toString()),
     };
 
     if (isNew) {
@@ -114,7 +114,7 @@ export const ChapterUpdate = () => {
                 id="chapter-content"
                 name="content"
                 data-cy="content"
-                type="textarea"
+                type="text"
                 validate={{
                   required: { value: true, message: translate('entity.validation.required') },
                 }}

@@ -1,27 +1,22 @@
 package com.jhipster.novelapp.service.mapper;
 
-import com.jhipster.novelapp.domain.*;
+import com.jhipster.novelapp.domain.Chapter;
+import com.jhipster.novelapp.domain.Novel;
 import com.jhipster.novelapp.service.dto.ChapterDTO;
+import com.jhipster.novelapp.service.dto.NovelDTO;
 import org.mapstruct.*;
 
 /**
  * Mapper for the entity {@link Chapter} and its DTO {@link ChapterDTO}.
  */
-@Mapper(componentModel = "jakarta", uses = { NovelMapper.class })
+@Mapper(componentModel = "spring")
 public interface ChapterMapper extends EntityMapper<ChapterDTO, Chapter> {
-    @Mapping(source = "novel.id", target = "novelId")
-    @Mapping(source = "novel.title", target = "novelTitle")
-    ChapterDTO toDto(Chapter chapter);
+    @Mapping(target = "novel", source = "novel", qualifiedByName = "novelTitle")
+    ChapterDTO toDto(Chapter s);
 
-    @Mapping(source = "novelId", target = "novel")
-    Chapter toEntity(ChapterDTO chapterDTO);
-
-    default Chapter fromId(Long id) {
-        if (id == null) {
-            return null;
-        }
-        Chapter chapter = new Chapter();
-        chapter.id = id;
-        return chapter;
-    }
+    @Named("novelTitle")
+    @BeanMapping(ignoreByDefault = true)
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "title", source = "title")
+    NovelDTO toDtoNovelTitle(Novel novel);
 }

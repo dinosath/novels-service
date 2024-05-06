@@ -1,14 +1,10 @@
 package com.jhipster.novelapp.domain;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.json.bind.annotation.JsonbTransient;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -18,27 +14,87 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  */
 @Entity
 @Table(name = "genre")
-@Cacheable
-@RegisterForReflection
-public class Genre extends PanacheEntityBase implements Serializable {
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@SuppressWarnings("common-java:DuplicatedBlocks")
+public class Genre implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
-    public Long id;
+    @Column(name = "id")
+    private Long id;
 
     @NotNull
     @Column(name = "name", nullable = false)
-    public String name;
+    private String name;
 
-    @ManyToMany(mappedBy = "genres")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "genres")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonbTransient
-    public Set<Novel> novels = new HashSet<>();
+    @JsonIgnoreProperties(value = { "chapters", "genres", "tags", "authors" }, allowSetters = true)
+    private Set<Novel> novels = new HashSet<>();
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Genre id(Long id) {
+        this.setId(id);
+        return this;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Genre name(String name) {
+        this.setName(name);
+        return this;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<Novel> getNovels() {
+        return this.novels;
+    }
+
+    public void setNovels(Set<Novel> novels) {
+        if (this.novels != null) {
+            this.novels.forEach(i -> i.removeGenre(this));
+        }
+        if (novels != null) {
+            novels.forEach(i -> i.addGenre(this));
+        }
+        this.novels = novels;
+    }
+
+    public Genre novels(Set<Novel> novels) {
+        this.setNovels(novels);
+        return this;
+    }
+
+    public Genre addNovel(Novel novel) {
+        this.novels.add(novel);
+        novel.getGenres().add(this);
+        return this;
+    }
+
+    public Genre removeNovel(Novel novel) {
+        this.novels.remove(novel);
+        novel.getGenres().remove(this);
+        return this;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {
@@ -48,56 +104,21 @@ public class Genre extends PanacheEntityBase implements Serializable {
         if (!(o instanceof Genre)) {
             return false;
         }
-        return id != null && id.equals(((Genre) o).id);
+        return getId() != null && getId().equals(((Genre) o).getId());
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
-        return "Genre{" + "id=" + id + ", name='" + name + "'" + "}";
-    }
-
-    public Genre update() {
-        return update(this);
-    }
-
-    public Genre persistOrUpdate() {
-        return persistOrUpdate(this);
-    }
-
-    public static Genre update(Genre genre) {
-        if (genre == null) {
-            throw new IllegalArgumentException("genre can't be null");
-        }
-        var entity = Genre.<Genre>findById(genre.id);
-        if (entity != null) {
-            entity.name = genre.name;
-            entity.novels = genre.novels;
-        }
-        return entity;
-    }
-
-    public static Genre persistOrUpdate(Genre genre) {
-        if (genre == null) {
-            throw new IllegalArgumentException("genre can't be null");
-        }
-        if (genre.id == null) {
-            persist(genre);
-            return genre;
-        } else {
-            return update(genre);
-        }
-    }
-
-    public static PanacheQuery<Genre> findAllWithEagerRelationships() {
-        return find("select distinct genre from Genre genre");
-    }
-
-    public static Optional<Genre> findOneWithEagerRelationships(Long id) {
-        return find("select genre from Genre genre where genre.id =?1", id).firstResultOptional();
+        return "Genre{" +
+            "id=" + getId() +
+            ", name='" + getName() + "'" +
+            "}";
     }
 }

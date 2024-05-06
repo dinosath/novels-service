@@ -56,6 +56,7 @@ export const TagUpdate = () => {
     const entity = {
       ...tagEntity,
       ...values,
+      novels: mapIdList(values.novels),
     };
 
     if (isNew) {
@@ -70,6 +71,7 @@ export const TagUpdate = () => {
       ? {}
       : {
           ...tagEntity,
+          novels: tagEntity?.novels?.map(e => e.id.toString()),
         };
 
   return (
@@ -107,6 +109,16 @@ export const TagUpdate = () => {
                   required: { value: true, message: translate('entity.validation.required') },
                 }}
               />
+              <ValidatedField label={translate('novelsApp.tag.novel')} id="tag-novel" data-cy="novel" type="select" multiple name="novels">
+                <option value="" key="0" />
+                {novels
+                  ? novels.map(otherEntity => (
+                      <option value={otherEntity.id} key={otherEntity.id}>
+                        {otherEntity.id}
+                      </option>
+                    ))
+                  : null}
+              </ValidatedField>
               <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/tag" replace color="info">
                 <FontAwesomeIcon icon="arrow-left" />
                 &nbsp;

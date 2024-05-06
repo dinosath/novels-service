@@ -1,40 +1,96 @@
 package com.jhipster.novelapp.domain;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.quarkus.runtime.annotations.RegisterForReflection;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
  * A Chapter.
  */
 @Entity
 @Table(name = "chapter")
-@Cacheable
-@RegisterForReflection
-public class Chapter extends PanacheEntityBase implements Serializable {
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@SuppressWarnings("common-java:DuplicatedBlocks")
+public class Chapter implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
-    public Long id;
+    @Column(name = "id")
+    private Long id;
 
     @NotNull
     @Column(name = "title", nullable = false)
-    public String title;
+    private String title;
 
+    @NotNull
     @Column(name = "content", nullable = false)
-    public String content;
+    private String content;
 
-    @ManyToOne
-    @JoinColumn(name = "novel_id")
-    public Novel novel;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "chapters", "genres", "tags", "authors" }, allowSetters = true)
+    private Novel novel;
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Chapter id(Long id) {
+        this.setId(id);
+        return this;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public Chapter title(String title) {
+        this.setTitle(title);
+        return this;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getContent() {
+        return this.content;
+    }
+
+    public Chapter content(String content) {
+        this.setContent(content);
+        return this;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Novel getNovel() {
+        return this.novel;
+    }
+
+    public void setNovel(Novel novel) {
+        this.novel = novel;
+    }
+
+    public Chapter novel(Novel novel) {
+        this.setNovel(novel);
+        return this;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {
@@ -44,49 +100,22 @@ public class Chapter extends PanacheEntityBase implements Serializable {
         if (!(o instanceof Chapter)) {
             return false;
         }
-        return id != null && id.equals(((Chapter) o).id);
+        return getId() != null && getId().equals(((Chapter) o).getId());
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
-        return "Chapter{" + "id=" + id + ", title='" + title + "'" + ", content='" + content + "'" + "}";
-    }
-
-    public Chapter update() {
-        return update(this);
-    }
-
-    public Chapter persistOrUpdate() {
-        return persistOrUpdate(this);
-    }
-
-    public static Chapter update(Chapter chapter) {
-        if (chapter == null) {
-            throw new IllegalArgumentException("chapter can't be null");
-        }
-        var entity = Chapter.<Chapter>findById(chapter.id);
-        if (entity != null) {
-            entity.title = chapter.title;
-            entity.content = chapter.content;
-            entity.novel = chapter.novel;
-        }
-        return entity;
-    }
-
-    public static Chapter persistOrUpdate(Chapter chapter) {
-        if (chapter == null) {
-            throw new IllegalArgumentException("chapter can't be null");
-        }
-        if (chapter.id == null) {
-            persist(chapter);
-            return chapter;
-        } else {
-            return update(chapter);
-        }
+        return "Chapter{" +
+            "id=" + getId() +
+            ", title='" + getTitle() + "'" +
+            ", content='" + getContent() + "'" +
+            "}";
     }
 }

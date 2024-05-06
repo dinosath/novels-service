@@ -1,46 +1,91 @@
 package com.jhipster.novelapp.service;
 
 import com.jhipster.novelapp.domain.Genre;
+import com.jhipster.novelapp.repository.GenreRepository;
 import com.jhipster.novelapp.service.dto.GenreDTO;
 import com.jhipster.novelapp.service.mapper.GenreMapper;
-import io.quarkus.panache.common.Page;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@ApplicationScoped
+/**
+ * Service Implementation for managing {@link com.jhipster.novelapp.domain.Genre}.
+ */
+@Service
 @Transactional
 public class GenreService {
 
     private final Logger log = LoggerFactory.getLogger(GenreService.class);
 
-    @Inject
-    GenreMapper genreMapper;
+    private final GenreRepository genreRepository;
 
-    @Transactional
-    public GenreDTO persistOrUpdate(GenreDTO genreDTO) {
+    private final GenreMapper genreMapper;
+
+    public GenreService(GenreRepository genreRepository, GenreMapper genreMapper) {
+        this.genreRepository = genreRepository;
+        this.genreMapper = genreMapper;
+    }
+
+    /**
+     * Save a genre.
+     *
+     * @param genreDTO the entity to save.
+     * @return the persisted entity.
+     */
+    public GenreDTO save(GenreDTO genreDTO) {
         log.debug("Request to save Genre : {}", genreDTO);
-        var genre = genreMapper.toEntity(genreDTO);
-        genre = Genre.persistOrUpdate(genre);
+        Genre genre = genreMapper.toEntity(genreDTO);
+        genre = genreRepository.save(genre);
         return genreMapper.toDto(genre);
     }
 
     /**
-     * Delete the Genre by id.
+     * Update a genre.
      *
-     * @param id the id of the entity.
+     * @param genreDTO the entity to save.
+     * @return the persisted entity.
      */
-    @Transactional
-    public void delete(Long id) {
-        log.debug("Request to delete Genre : {}", id);
-        Genre
-            .findByIdOptional(id)
-            .ifPresent(genre -> {
-                genre.delete();
-            });
+    public GenreDTO update(GenreDTO genreDTO) {
+        log.debug("Request to update Genre : {}", genreDTO);
+        Genre genre = genreMapper.toEntity(genreDTO);
+        genre = genreRepository.save(genre);
+        return genreMapper.toDto(genre);
+    }
+
+    /**
+     * Partially update a genre.
+     *
+     * @param genreDTO the entity to update partially.
+     * @return the persisted entity.
+     */
+    public Optional<GenreDTO> partialUpdate(GenreDTO genreDTO) {
+        log.debug("Request to partially update Genre : {}", genreDTO);
+
+        return genreRepository
+            .findById(genreDTO.getId())
+            .map(existingGenre -> {
+                genreMapper.partialUpdate(existingGenre, genreDTO);
+
+                return existingGenre;
+            })
+            .map(genreRepository::save)
+            .map(genreMapper::toDto);
+    }
+
+    /**
+     * Get all the genres.
+     *
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<GenreDTO> findAll(Pageable pageable) {
+        log.debug("Request to get all Genres");
+        return genreRepository.findAll(pageable).map(genreMapper::toDto);
     }
 
     /**
@@ -49,30 +94,19 @@ public class GenreService {
      * @param id the id of the entity.
      * @return the entity.
      */
+    @Transactional(readOnly = true)
     public Optional<GenreDTO> findOne(Long id) {
         log.debug("Request to get Genre : {}", id);
-        return Genre.findOneWithEagerRelationships(id).map(genre -> genreMapper.toDto((Genre) genre));
+        return genreRepository.findById(id).map(genreMapper::toDto);
     }
 
     /**
-     * Get all the genres.
-     * @param page the pagination information.
-     * @return the list of entities.
+     * Delete the genre by id.
+     *
+     * @param id the id of the entity.
      */
-    public Paged<GenreDTO> findAll(Page page) {
-        log.debug("Request to get all Genres");
-        return new Paged<>(Genre.findAll().page(page)).map(genre -> genreMapper.toDto((Genre) genre));
-    }
-
-    /**
-     * Get all the genres with eager load of many-to-many relationships.
-     * @param page the pagination information.
-     * @return the list of entities.
-     */
-    public Paged<GenreDTO> findAllWithEagerRelationships(Page page) {
-        var genres = Genre.findAllWithEagerRelationships().page(page).list();
-        var totalCount = Genre.findAll().count();
-        var pageCount = Genre.findAll().page(page).pageCount();
-        return new Paged<>(page.index, page.size, totalCount, pageCount, genres).map(genre -> genreMapper.toDto((Genre) genre));
+    public void delete(Long id) {
+        log.debug("Request to delete Genre : {}", id);
+        genreRepository.deleteById(id);
     }
 }

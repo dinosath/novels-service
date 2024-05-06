@@ -37,6 +37,19 @@ export const GenreDetail = () => {
             </span>
           </dt>
           <dd>{genreEntity.name}</dd>
+          <dt>
+            <Translate contentKey="novelsApp.genre.novel">Novel</Translate>
+          </dt>
+          <dd>
+            {genreEntity.novels
+              ? genreEntity.novels.map((val, i) => (
+                  <span key={val.id}>
+                    <a>{val.id}</a>
+                    {genreEntity.novels && i === genreEntity.novels.length - 1 ? '' : ', '}
+                  </span>
+                ))
+              : null}
+          </dd>
         </dl>
         <Button tag={Link} to="/genre" replace color="info" data-cy="entityDetailsBackButton">
           <FontAwesomeIcon icon="arrow-left" />{' '}

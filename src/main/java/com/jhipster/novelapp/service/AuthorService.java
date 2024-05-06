@@ -1,46 +1,91 @@
 package com.jhipster.novelapp.service;
 
 import com.jhipster.novelapp.domain.Author;
+import com.jhipster.novelapp.repository.AuthorRepository;
 import com.jhipster.novelapp.service.dto.AuthorDTO;
 import com.jhipster.novelapp.service.mapper.AuthorMapper;
-import io.quarkus.panache.common.Page;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@ApplicationScoped
+/**
+ * Service Implementation for managing {@link com.jhipster.novelapp.domain.Author}.
+ */
+@Service
 @Transactional
 public class AuthorService {
 
     private final Logger log = LoggerFactory.getLogger(AuthorService.class);
 
-    @Inject
-    AuthorMapper authorMapper;
+    private final AuthorRepository authorRepository;
 
-    @Transactional
-    public AuthorDTO persistOrUpdate(AuthorDTO authorDTO) {
+    private final AuthorMapper authorMapper;
+
+    public AuthorService(AuthorRepository authorRepository, AuthorMapper authorMapper) {
+        this.authorRepository = authorRepository;
+        this.authorMapper = authorMapper;
+    }
+
+    /**
+     * Save a author.
+     *
+     * @param authorDTO the entity to save.
+     * @return the persisted entity.
+     */
+    public AuthorDTO save(AuthorDTO authorDTO) {
         log.debug("Request to save Author : {}", authorDTO);
-        var author = authorMapper.toEntity(authorDTO);
-        author = Author.persistOrUpdate(author);
+        Author author = authorMapper.toEntity(authorDTO);
+        author = authorRepository.save(author);
         return authorMapper.toDto(author);
     }
 
     /**
-     * Delete the Author by id.
+     * Update a author.
      *
-     * @param id the id of the entity.
+     * @param authorDTO the entity to save.
+     * @return the persisted entity.
      */
-    @Transactional
-    public void delete(Long id) {
-        log.debug("Request to delete Author : {}", id);
-        Author
-            .findByIdOptional(id)
-            .ifPresent(author -> {
-                author.delete();
-            });
+    public AuthorDTO update(AuthorDTO authorDTO) {
+        log.debug("Request to update Author : {}", authorDTO);
+        Author author = authorMapper.toEntity(authorDTO);
+        author = authorRepository.save(author);
+        return authorMapper.toDto(author);
+    }
+
+    /**
+     * Partially update a author.
+     *
+     * @param authorDTO the entity to update partially.
+     * @return the persisted entity.
+     */
+    public Optional<AuthorDTO> partialUpdate(AuthorDTO authorDTO) {
+        log.debug("Request to partially update Author : {}", authorDTO);
+
+        return authorRepository
+            .findById(authorDTO.getId())
+            .map(existingAuthor -> {
+                authorMapper.partialUpdate(existingAuthor, authorDTO);
+
+                return existingAuthor;
+            })
+            .map(authorRepository::save)
+            .map(authorMapper::toDto);
+    }
+
+    /**
+     * Get all the authors.
+     *
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<AuthorDTO> findAll(Pageable pageable) {
+        log.debug("Request to get all Authors");
+        return authorRepository.findAll(pageable).map(authorMapper::toDto);
     }
 
     /**
@@ -49,30 +94,19 @@ public class AuthorService {
      * @param id the id of the entity.
      * @return the entity.
      */
+    @Transactional(readOnly = true)
     public Optional<AuthorDTO> findOne(Long id) {
         log.debug("Request to get Author : {}", id);
-        return Author.findOneWithEagerRelationships(id).map(author -> authorMapper.toDto((Author) author));
+        return authorRepository.findById(id).map(authorMapper::toDto);
     }
 
     /**
-     * Get all the authors.
-     * @param page the pagination information.
-     * @return the list of entities.
+     * Delete the author by id.
+     *
+     * @param id the id of the entity.
      */
-    public Paged<AuthorDTO> findAll(Page page) {
-        log.debug("Request to get all Authors");
-        return new Paged<>(Author.findAll().page(page)).map(author -> authorMapper.toDto((Author) author));
-    }
-
-    /**
-     * Get all the authors with eager load of many-to-many relationships.
-     * @param page the pagination information.
-     * @return the list of entities.
-     */
-    public Paged<AuthorDTO> findAllWithEagerRelationships(Page page) {
-        var authors = Author.findAllWithEagerRelationships().page(page).list();
-        var totalCount = Author.findAll().count();
-        var pageCount = Author.findAll().page(page).pageCount();
-        return new Paged<>(page.index, page.size, totalCount, pageCount, authors).map(author -> authorMapper.toDto((Author) author));
+    public void delete(Long id) {
+        log.debug("Request to delete Author : {}", id);
+        authorRepository.deleteById(id);
     }
 }

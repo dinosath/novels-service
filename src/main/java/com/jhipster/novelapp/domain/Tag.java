@@ -1,14 +1,10 @@
 package com.jhipster.novelapp.domain;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.json.bind.annotation.JsonbTransient;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -18,27 +14,87 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  */
 @Entity
 @Table(name = "tag")
-@Cacheable
-@RegisterForReflection
-public class Tag extends PanacheEntityBase implements Serializable {
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@SuppressWarnings("common-java:DuplicatedBlocks")
+public class Tag implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator")
-    public Long id;
+    @Column(name = "id")
+    private Long id;
 
     @NotNull
     @Column(name = "name", nullable = false)
-    public String name;
+    private String name;
 
-    @ManyToMany(mappedBy = "tags")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "tags")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonbTransient
-    public Set<Novel> novels = new HashSet<>();
+    @JsonIgnoreProperties(value = { "chapters", "genres", "tags", "authors" }, allowSetters = true)
+    private Set<Novel> novels = new HashSet<>();
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
+    // jhipster-needle-entity-add-field - JHipster will add fields here
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Tag id(Long id) {
+        this.setId(id);
+        return this;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Tag name(String name) {
+        this.setName(name);
+        return this;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<Novel> getNovels() {
+        return this.novels;
+    }
+
+    public void setNovels(Set<Novel> novels) {
+        if (this.novels != null) {
+            this.novels.forEach(i -> i.removeTag(this));
+        }
+        if (novels != null) {
+            novels.forEach(i -> i.addTag(this));
+        }
+        this.novels = novels;
+    }
+
+    public Tag novels(Set<Novel> novels) {
+        this.setNovels(novels);
+        return this;
+    }
+
+    public Tag addNovel(Novel novel) {
+        this.novels.add(novel);
+        novel.getTags().add(this);
+        return this;
+    }
+
+    public Tag removeNovel(Novel novel) {
+        this.novels.remove(novel);
+        novel.getTags().remove(this);
+        return this;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {
@@ -48,56 +104,21 @@ public class Tag extends PanacheEntityBase implements Serializable {
         if (!(o instanceof Tag)) {
             return false;
         }
-        return id != null && id.equals(((Tag) o).id);
+        return getId() != null && getId().equals(((Tag) o).getId());
     }
 
     @Override
     public int hashCode() {
-        return 31;
+        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        return getClass().hashCode();
     }
 
+    // prettier-ignore
     @Override
     public String toString() {
-        return "Tag{" + "id=" + id + ", name='" + name + "'" + "}";
-    }
-
-    public Tag update() {
-        return update(this);
-    }
-
-    public Tag persistOrUpdate() {
-        return persistOrUpdate(this);
-    }
-
-    public static Tag update(Tag tag) {
-        if (tag == null) {
-            throw new IllegalArgumentException("tag can't be null");
-        }
-        var entity = Tag.<Tag>findById(tag.id);
-        if (entity != null) {
-            entity.name = tag.name;
-            entity.novels = tag.novels;
-        }
-        return entity;
-    }
-
-    public static Tag persistOrUpdate(Tag tag) {
-        if (tag == null) {
-            throw new IllegalArgumentException("tag can't be null");
-        }
-        if (tag.id == null) {
-            persist(tag);
-            return tag;
-        } else {
-            return update(tag);
-        }
-    }
-
-    public static PanacheQuery<Tag> findAllWithEagerRelationships() {
-        return find("select distinct tag from Tag tag");
-    }
-
-    public static Optional<Tag> findOneWithEagerRelationships(Long id) {
-        return find("select tag from Tag tag where tag.id =?1", id).firstResultOptional();
+        return "Tag{" +
+            "id=" + getId() +
+            ", name='" + getName() + "'" +
+            "}";
     }
 }

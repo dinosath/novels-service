@@ -1,128 +1,188 @@
 package com.jhipster.novelapp.web.rest;
 
-import static jakarta.ws.rs.core.UriBuilder.fromPath;
-
+import com.jhipster.novelapp.repository.ChapterRepository;
 import com.jhipster.novelapp.service.ChapterService;
-import com.jhipster.novelapp.service.Paged;
 import com.jhipster.novelapp.service.dto.ChapterDTO;
 import com.jhipster.novelapp.web.rest.errors.BadRequestAlertException;
-import com.jhipster.novelapp.web.rest.vm.PageRequestVM;
-import com.jhipster.novelapp.web.rest.vm.SortRequestVM;
-import com.jhipster.novelapp.web.util.HeaderUtil;
-import com.jhipster.novelapp.web.util.PaginationUtil;
-import com.jhipster.novelapp.web.util.ResponseUtil;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+import jakarta.validation.constraints.NotNull;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import tech.jhipster.web.util.HeaderUtil;
+import tech.jhipster.web.util.PaginationUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link com.jhipster.novelapp.domain.Chapter}.
  */
-@Path("/api/chapters")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-@ApplicationScoped
+@RestController
+@RequestMapping("/api/chapters")
 public class ChapterResource {
 
     private final Logger log = LoggerFactory.getLogger(ChapterResource.class);
 
     private static final String ENTITY_NAME = "chapter";
 
-    @ConfigProperty(name = "application.name")
-    String applicationName;
+    @Value("${jhipster.clientApp.name}")
+    private String applicationName;
 
-    @Inject
-    ChapterService chapterService;
+    private final ChapterService chapterService;
+
+    private final ChapterRepository chapterRepository;
+
+    public ChapterResource(ChapterService chapterService, ChapterRepository chapterRepository) {
+        this.chapterService = chapterService;
+        this.chapterRepository = chapterRepository;
+    }
 
     /**
      * {@code POST  /chapters} : Create a new chapter.
      *
      * @param chapterDTO the chapterDTO to create.
-     * @return the {@link Response} with status {@code 201 (Created)} and with body the new chapterDTO, or with status {@code 400 (Bad Request)} if the chapter has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new chapterDTO, or with status {@code 400 (Bad Request)} if the chapter has already an ID.
+     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @POST
-    public Response createChapter(@Valid ChapterDTO chapterDTO, @Context UriInfo uriInfo) {
+    @PostMapping("")
+    public ResponseEntity<ChapterDTO> createChapter(@Valid @RequestBody ChapterDTO chapterDTO) throws URISyntaxException {
         log.debug("REST request to save Chapter : {}", chapterDTO);
-        if (chapterDTO.id != null) {
+        if (chapterDTO.getId() != null) {
             throw new BadRequestAlertException("A new chapter cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        var result = chapterService.persistOrUpdate(chapterDTO);
-        var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
-        HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()).forEach(response::header);
-        return response.build();
+        chapterDTO = chapterService.save(chapterDTO);
+        return ResponseEntity.created(new URI("/api/chapters/" + chapterDTO.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, chapterDTO.getId().toString()))
+            .body(chapterDTO);
     }
 
     /**
-     * {@code PUT  /chapters} : Updates an existing chapter.
+     * {@code PUT  /chapters/:id} : Updates an existing chapter.
      *
+     * @param id the id of the chapterDTO to save.
      * @param chapterDTO the chapterDTO to update.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body the updated chapterDTO,
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated chapterDTO,
      * or with status {@code 400 (Bad Request)} if the chapterDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the chapterDTO couldn't be updated.
+     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PUT
-    @Path("/{id}")
-    public Response updateChapter(@Valid ChapterDTO chapterDTO, @PathParam("id") Long id) {
-        log.debug("REST request to update Chapter : {}", chapterDTO);
-        if (chapterDTO.id == null) {
+    @PutMapping("/{id}")
+    public ResponseEntity<ChapterDTO> updateChapter(
+        @PathVariable(value = "id", required = false) final Long id,
+        @Valid @RequestBody ChapterDTO chapterDTO
+    ) throws URISyntaxException {
+        log.debug("REST request to update Chapter : {}, {}", id, chapterDTO);
+        if (chapterDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        var result = chapterService.persistOrUpdate(chapterDTO);
-        var response = Response.ok().entity(result);
-        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, chapterDTO.id.toString()).forEach(response::header);
-        return response.build();
+        if (!Objects.equals(id, chapterDTO.getId())) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+
+        if (!chapterRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        chapterDTO = chapterService.update(chapterDTO);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, chapterDTO.getId().toString()))
+            .body(chapterDTO);
     }
 
     /**
-     * {@code DELETE  /chapters/:id} : delete the "id" chapter.
+     * {@code PATCH  /chapters/:id} : Partial updates given fields of an existing chapter, field will ignore if it is null
      *
-     * @param id the id of the chapterDTO to delete.
-     * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
+     * @param id the id of the chapterDTO to save.
+     * @param chapterDTO the chapterDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated chapterDTO,
+     * or with status {@code 400 (Bad Request)} if the chapterDTO is not valid,
+     * or with status {@code 404 (Not Found)} if the chapterDTO is not found,
+     * or with status {@code 500 (Internal Server Error)} if the chapterDTO couldn't be updated.
+     * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @DELETE
-    @Path("/{id}")
-    public Response deleteChapter(@PathParam("id") Long id) {
-        log.debug("REST request to delete Chapter : {}", id);
-        chapterService.delete(id);
-        var response = Response.noContent();
-        HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
-        return response.build();
+    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    public ResponseEntity<ChapterDTO> partialUpdateChapter(
+        @PathVariable(value = "id", required = false) final Long id,
+        @NotNull @RequestBody ChapterDTO chapterDTO
+    ) throws URISyntaxException {
+        log.debug("REST request to partial update Chapter partially : {}, {}", id, chapterDTO);
+        if (chapterDTO.getId() == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!Objects.equals(id, chapterDTO.getId())) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+
+        if (!chapterRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        Optional<ChapterDTO> result = chapterService.partialUpdate(chapterDTO);
+
+        return ResponseUtil.wrapOrNotFound(
+            result,
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, chapterDTO.getId().toString())
+        );
     }
 
     /**
      * {@code GET  /chapters} : get all the chapters.
      *
-     * @param pageRequest the pagination information.
-     * @return the {@link Response} with status {@code 200 (OK)} and the list of chapters in body.
+     * @param pageable the pagination information.
+     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of chapters in body.
      */
-    @GET
-    public Response getAllChapters(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+    @GetMapping("")
+    public ResponseEntity<List<ChapterDTO>> getAllChapters(
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
+    ) {
         log.debug("REST request to get a page of Chapters");
-        var page = pageRequest.toPage();
-        var sort = sortRequest.toSort();
-        Paged<ChapterDTO> result = chapterService.findAll(page);
-        var response = Response.ok().entity(result.content);
-        response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
-        return response.build();
+        Page<ChapterDTO> page;
+        if (eagerload) {
+            page = chapterService.findAllWithEagerRelationships(pageable);
+        } else {
+            page = chapterService.findAll(pageable);
+        }
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
      * {@code GET  /chapters/:id} : get the "id" chapter.
      *
      * @param id the id of the chapterDTO to retrieve.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body the chapterDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the chapterDTO, or with status {@code 404 (Not Found)}.
      */
-    @GET
-    @Path("/{id}")
-    public Response getChapter(@PathParam("id") Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ChapterDTO> getChapter(@PathVariable("id") Long id) {
         log.debug("REST request to get Chapter : {}", id);
         Optional<ChapterDTO> chapterDTO = chapterService.findOne(id);
         return ResponseUtil.wrapOrNotFound(chapterDTO);
+    }
+
+    /**
+     * {@code DELETE  /chapters/:id} : delete the "id" chapter.
+     *
+     * @param id the id of the chapterDTO to delete.
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteChapter(@PathVariable("id") Long id) {
+        log.debug("REST request to delete Chapter : {}", id);
+        chapterService.delete(id);
+        return ResponseEntity.noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+            .build();
     }
 }

@@ -19,7 +19,7 @@ module.exports = async () =>
       main: './src/main/webapp/app/index',
     },
     output: {
-      path: utils.root('target/classes/META-INF/resources/'),
+      path: utils.root('target/classes/static/'),
       filename: '[name].[contenthash:8].js',
       chunkFilename: '[name].[chunkhash:8].chunk.js',
     },

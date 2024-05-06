@@ -1,46 +1,91 @@
 package com.jhipster.novelapp.service;
 
 import com.jhipster.novelapp.domain.Tag;
+import com.jhipster.novelapp.repository.TagRepository;
 import com.jhipster.novelapp.service.dto.TagDTO;
 import com.jhipster.novelapp.service.mapper.TagMapper;
-import io.quarkus.panache.common.Page;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@ApplicationScoped
+/**
+ * Service Implementation for managing {@link com.jhipster.novelapp.domain.Tag}.
+ */
+@Service
 @Transactional
 public class TagService {
 
     private final Logger log = LoggerFactory.getLogger(TagService.class);
 
-    @Inject
-    TagMapper tagMapper;
+    private final TagRepository tagRepository;
 
-    @Transactional
-    public TagDTO persistOrUpdate(TagDTO tagDTO) {
+    private final TagMapper tagMapper;
+
+    public TagService(TagRepository tagRepository, TagMapper tagMapper) {
+        this.tagRepository = tagRepository;
+        this.tagMapper = tagMapper;
+    }
+
+    /**
+     * Save a tag.
+     *
+     * @param tagDTO the entity to save.
+     * @return the persisted entity.
+     */
+    public TagDTO save(TagDTO tagDTO) {
         log.debug("Request to save Tag : {}", tagDTO);
-        var tag = tagMapper.toEntity(tagDTO);
-        tag = Tag.persistOrUpdate(tag);
+        Tag tag = tagMapper.toEntity(tagDTO);
+        tag = tagRepository.save(tag);
         return tagMapper.toDto(tag);
     }
 
     /**
-     * Delete the Tag by id.
+     * Update a tag.
      *
-     * @param id the id of the entity.
+     * @param tagDTO the entity to save.
+     * @return the persisted entity.
      */
-    @Transactional
-    public void delete(Long id) {
-        log.debug("Request to delete Tag : {}", id);
-        Tag
-            .findByIdOptional(id)
-            .ifPresent(tag -> {
-                tag.delete();
-            });
+    public TagDTO update(TagDTO tagDTO) {
+        log.debug("Request to update Tag : {}", tagDTO);
+        Tag tag = tagMapper.toEntity(tagDTO);
+        tag = tagRepository.save(tag);
+        return tagMapper.toDto(tag);
+    }
+
+    /**
+     * Partially update a tag.
+     *
+     * @param tagDTO the entity to update partially.
+     * @return the persisted entity.
+     */
+    public Optional<TagDTO> partialUpdate(TagDTO tagDTO) {
+        log.debug("Request to partially update Tag : {}", tagDTO);
+
+        return tagRepository
+            .findById(tagDTO.getId())
+            .map(existingTag -> {
+                tagMapper.partialUpdate(existingTag, tagDTO);
+
+                return existingTag;
+            })
+            .map(tagRepository::save)
+            .map(tagMapper::toDto);
+    }
+
+    /**
+     * Get all the tags.
+     *
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<TagDTO> findAll(Pageable pageable) {
+        log.debug("Request to get all Tags");
+        return tagRepository.findAll(pageable).map(tagMapper::toDto);
     }
 
     /**
@@ -49,30 +94,19 @@ public class TagService {
      * @param id the id of the entity.
      * @return the entity.
      */
+    @Transactional(readOnly = true)
     public Optional<TagDTO> findOne(Long id) {
         log.debug("Request to get Tag : {}", id);
-        return Tag.findOneWithEagerRelationships(id).map(tag -> tagMapper.toDto((Tag) tag));
+        return tagRepository.findById(id).map(tagMapper::toDto);
     }
 
     /**
-     * Get all the tags.
-     * @param page the pagination information.
-     * @return the list of entities.
+     * Delete the tag by id.
+     *
+     * @param id the id of the entity.
      */
-    public Paged<TagDTO> findAll(Page page) {
-        log.debug("Request to get all Tags");
-        return new Paged<>(Tag.findAll().page(page)).map(tag -> tagMapper.toDto((Tag) tag));
-    }
-
-    /**
-     * Get all the tags with eager load of many-to-many relationships.
-     * @param page the pagination information.
-     * @return the list of entities.
-     */
-    public Paged<TagDTO> findAllWithEagerRelationships(Page page) {
-        var tags = Tag.findAllWithEagerRelationships().page(page).list();
-        var totalCount = Tag.findAll().count();
-        var pageCount = Tag.findAll().page(page).pageCount();
-        return new Paged<>(page.index, page.size, totalCount, pageCount, tags).map(tag -> tagMapper.toDto((Tag) tag));
+    public void delete(Long id) {
+        log.debug("Request to delete Tag : {}", id);
+        tagRepository.deleteById(id);
     }
 }

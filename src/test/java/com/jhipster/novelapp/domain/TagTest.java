@@ -1,23 +1,49 @@
 package com.jhipster.novelapp.domain;
 
+import static com.jhipster.novelapp.domain.NovelTestSamples.*;
+import static com.jhipster.novelapp.domain.TagTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jhipster.novelapp.TestUtil;
+import com.jhipster.novelapp.web.rest.TestUtil;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class TagTest {
+class TagTest {
 
     @Test
-    public void equalsVerifier() throws Exception {
+    void equalsVerifier() throws Exception {
         TestUtil.equalsVerifier(Tag.class);
-        Tag tag1 = new Tag();
-        tag1.id = 1L;
+        Tag tag1 = getTagSample1();
         Tag tag2 = new Tag();
-        tag2.id = tag1.id;
+        assertThat(tag1).isNotEqualTo(tag2);
+
+        tag2.setId(tag1.getId());
         assertThat(tag1).isEqualTo(tag2);
-        tag2.id = 2L;
+
+        tag2 = getTagSample2();
         assertThat(tag1).isNotEqualTo(tag2);
-        tag1.id = null;
-        assertThat(tag1).isNotEqualTo(tag2);
+    }
+
+    @Test
+    void novelTest() throws Exception {
+        Tag tag = getTagRandomSampleGenerator();
+        Novel novelBack = getNovelRandomSampleGenerator();
+
+        tag.addNovel(novelBack);
+        assertThat(tag.getNovels()).containsOnly(novelBack);
+        assertThat(novelBack.getTags()).containsOnly(tag);
+
+        tag.removeNovel(novelBack);
+        assertThat(tag.getNovels()).doesNotContain(novelBack);
+        assertThat(novelBack.getTags()).doesNotContain(tag);
+
+        tag.novels(new HashSet<>(Set.of(novelBack)));
+        assertThat(tag.getNovels()).containsOnly(novelBack);
+        assertThat(novelBack.getTags()).containsOnly(tag);
+
+        tag.setNovels(new HashSet<>());
+        assertThat(tag.getNovels()).doesNotContain(novelBack);
+        assertThat(novelBack.getTags()).doesNotContain(tag);
     }
 }

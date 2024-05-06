@@ -2,7 +2,7 @@ package com.jhipster.novelapp.service.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jhipster.novelapp.TestUtil;
+import com.jhipster.novelapp.web.rest.TestUtil;
 import org.junit.jupiter.api.Test;
 
 class NovelDTOTest {
@@ -11,14 +11,14 @@ class NovelDTOTest {
     void dtoEqualsVerifier() throws Exception {
         TestUtil.equalsVerifier(NovelDTO.class);
         NovelDTO novelDTO1 = new NovelDTO();
-        novelDTO1.id = 1L;
+        novelDTO1.setId(1L);
         NovelDTO novelDTO2 = new NovelDTO();
         assertThat(novelDTO1).isNotEqualTo(novelDTO2);
-        novelDTO2.id = novelDTO1.id;
+        novelDTO2.setId(novelDTO1.getId());
         assertThat(novelDTO1).isEqualTo(novelDTO2);
-        novelDTO2.id = 2L;
+        novelDTO2.setId(2L);
         assertThat(novelDTO1).isNotEqualTo(novelDTO2);
-        novelDTO1.id = null;
+        novelDTO1.setId(null);
         assertThat(novelDTO1).isNotEqualTo(novelDTO2);
     }
 }

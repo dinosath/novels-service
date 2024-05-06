@@ -1,32 +1,34 @@
 package com.jhipster.novelapp.domain;
 
+import static com.jhipster.novelapp.domain.AuthorityTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.jhipster.novelapp.security.AuthoritiesConstants;
+import com.jhipster.novelapp.web.rest.TestUtil;
 import org.junit.jupiter.api.Test;
 
-public class AuthorityTest {
+class AuthorityTest {
 
     @Test
-    public void testAuthorityEquals() {
-        var authorityA = new Authority();
-        assertThat(authorityA).isEqualTo(authorityA);
-        assertThat(authorityA).isNotEqualTo(null);
-        assertThat(authorityA).isNotEqualTo(new Object());
-        assertThat(authorityA.hashCode()).isEqualTo(0);
-        assertThat(authorityA.toString()).isNotNull();
+    void equalsVerifier() throws Exception {
+        TestUtil.equalsVerifier(Authority.class);
+        Authority authority1 = getAuthoritySample1();
+        Authority authority2 = new Authority();
+        assertThat(authority1).isNotEqualTo(authority2);
 
-        var authorityB = new Authority();
-        assertThat(authorityA).isEqualTo(authorityB);
+        authority2.setName(authority1.getName());
+        assertThat(authority1).isEqualTo(authority2);
 
-        authorityB.name = AuthoritiesConstants.ADMIN;
-        assertThat(authorityA).isNotEqualTo(authorityB);
+        authority2 = getAuthoritySample2();
+        assertThat(authority1).isNotEqualTo(authority2);
+    }
 
-        authorityA.name = AuthoritiesConstants.USER;
-        assertThat(authorityA).isNotEqualTo(authorityB);
+    @Test
+    void hashCodeVerifier() throws Exception {
+        Authority authority = new Authority();
+        assertThat(authority.hashCode()).isZero();
 
-        authorityB.name = AuthoritiesConstants.USER;
-        assertThat(authorityA).isEqualTo(authorityB);
-        assertThat(authorityA.hashCode()).isEqualTo(authorityB.hashCode());
+        Authority authority1 = getAuthoritySample1();
+        authority.setName(authority1.getName());
+        assertThat(authority).hasSameHashCodeAs(authority1);
     }
 }

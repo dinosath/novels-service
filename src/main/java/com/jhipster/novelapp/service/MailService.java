@@ -1,19 +1,28 @@
 package com.jhipster.novelapp.service;
 
-import com.jhipster.novelapp.config.JHipsterProperties;
 import com.jhipster.novelapp.domain.User;
-import io.quarkus.mailer.MailTemplate;
-import io.quarkus.qute.Location;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import java.util.concurrent.CompletionStage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import tech.jhipster.config.JHipsterProperties;
 
 /**
- * Service for sending emails.
+ * Service for sending emails asynchronously.
+ * <p>
+ * We use the {@link Async} annotation to send emails asynchronously.
  */
-@ApplicationScoped
+@Service
 public class MailService {
 
     private final Logger log = LoggerFactory.getLogger(MailService.class);
@@ -22,57 +31,90 @@ public class MailService {
 
     private static final String BASE_URL = "baseUrl";
 
-    final JHipsterProperties jHipsterProperties;
+    private final JHipsterProperties jHipsterProperties;
 
-    final MailTemplate activationEmail;
+    private final JavaMailSender javaMailSender;
 
-    final MailTemplate creationEmail;
+    private final MessageSource messageSource;
 
-    final MailTemplate passwordResetEmail;
+    private final SpringTemplateEngine templateEngine;
 
-    @Inject
     public MailService(
         JHipsterProperties jHipsterProperties,
-        @Location("mail/activationEmail") MailTemplate activationEmail,
-        @Location("mail/creationEmail") MailTemplate creationEmail,
-        @Location("mail/passwordResetEmail") MailTemplate passwordResetEmail
+        JavaMailSender javaMailSender,
+        MessageSource messageSource,
+        SpringTemplateEngine templateEngine
     ) {
         this.jHipsterProperties = jHipsterProperties;
-        this.activationEmail = activationEmail;
-        this.creationEmail = creationEmail;
-        this.passwordResetEmail = passwordResetEmail;
+        this.javaMailSender = javaMailSender;
+        this.messageSource = messageSource;
+        this.templateEngine = templateEngine;
     }
 
-    public CompletionStage<Void> sendEmailFromTemplate(User user, MailTemplate template, String subject) {
-        return template
-            .to(user.email)
-            .subject(subject)
-            .data(BASE_URL, jHipsterProperties.mail().baseUrl())
-            .data(USER, user)
-            .send()
-            .subscribeAsCompletionStage()
-            .handle((it, throwable) -> {
-                if (throwable != null) {
-                    log.warn("Email could not be sent to user '{}'", user.email, throwable);
-                } else {
-                    log.debug("Sent email to User '{}'", user.email);
-                }
-                return null;
-            });
+    @Async
+    public void sendEmail(String to, String subject, String content, boolean isMultipart, boolean isHtml) {
+        this.sendEmailSync(to, subject, content, isMultipart, isHtml);
     }
 
-    public CompletionStage<Void> sendActivationEmail(User user) {
-        log.debug("Sending activation email to '{}'", user.email);
-        return sendEmailFromTemplate(user, activationEmail, "jhipsterSampleApplication account activation is required");
+    private void sendEmailSync(String to, String subject, String content, boolean isMultipart, boolean isHtml) {
+        log.debug(
+            "Send email[multipart '{}' and html '{}'] to '{}' with subject '{}' and content={}",
+            isMultipart,
+            isHtml,
+            to,
+            subject,
+            content
+        );
+
+        // Prepare message using a Spring helper
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper message = new MimeMessageHelper(mimeMessage, isMultipart, StandardCharsets.UTF_8.name());
+            message.setTo(to);
+            message.setFrom(jHipsterProperties.getMail().getFrom());
+            message.setSubject(subject);
+            message.setText(content, isHtml);
+            javaMailSender.send(mimeMessage);
+            log.debug("Sent email to User '{}'", to);
+        } catch (MailException | MessagingException e) {
+            log.warn("Email could not be sent to user '{}'", to, e);
+        }
     }
 
-    public CompletionStage<Void> sendCreationEmail(User user) {
-        log.debug("Sending creation email to '{}'", user.email);
-        return sendEmailFromTemplate(user, creationEmail, "jhipsterSampleApplication account activation is required");
+    @Async
+    public void sendEmailFromTemplate(User user, String templateName, String titleKey) {
+        this.sendEmailFromTemplateSync(user, templateName, titleKey);
     }
 
-    public CompletionStage<Void> sendPasswordResetMail(User user) {
-        log.debug("Sending password reset email to '{}'", user.email);
-        return sendEmailFromTemplate(user, passwordResetEmail, "jhipsterSampleApplication password reset");
+    private void sendEmailFromTemplateSync(User user, String templateName, String titleKey) {
+        if (user.getEmail() == null) {
+            log.debug("Email doesn't exist for user '{}'", user.getLogin());
+            return;
+        }
+        Locale locale = Locale.forLanguageTag(user.getLangKey());
+        Context context = new Context(locale);
+        context.setVariable(USER, user);
+        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        String content = templateEngine.process(templateName, context);
+        String subject = messageSource.getMessage(titleKey, null, locale);
+        this.sendEmailSync(user.getEmail(), subject, content, false, true);
+    }
+
+    @Async
+    public void sendActivationEmail(User user) {
+        log.debug("Sending activation email to '{}'", user.getEmail());
+        this.sendEmailFromTemplateSync(user, "mail/activationEmail", "email.activation.title");
+    }
+
+    @Async
+    public void sendCreationEmail(User user) {
+        log.debug("Sending creation email to '{}'", user.getEmail());
+        this.sendEmailFromTemplateSync(user, "mail/creationEmail", "email.activation.title");
+    }
+
+    @Async
+    public void sendPasswordResetMail(User user) {
+        log.debug("Sending password reset email to '{}'", user.getEmail());
+        this.sendEmailFromTemplateSync(user, "mail/passwordResetEmail", "email.reset.title");
     }
 }
